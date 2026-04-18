@@ -1,0 +1,1 @@
+Fajny tekst hello ta ja Kuba 

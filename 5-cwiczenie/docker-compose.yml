@@ -1,0 +1,43 @@
+services:
+  app:
+    build: ./app
+    ports:
+      - "8081:5000"
+    environment:
+      REDIS_HOST: redis
+      APP_TITLE: Testowanie i health checks
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "healthcheck_http.py"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  tests:
+    build: ./app
+    environment:
+      APP_BASE_URL: http://app:5000
+    command: ["pytest", "tests/unit", "tests/integration", "-q"]
+    depends_on:
+      app:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["tests"]
+
+volumes:
+  redis_data:

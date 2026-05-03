@@ -91,7 +91,52 @@ Powinienes zobaczyc:
 - `Service` dla Flask,
 - `Ingress` dla hosta `flask-redis.local`.
 
-## Krok 5. Sprawdz dzialanie aplikacji przez Ingress
+## Krok 5. Sprawdz dzialanie aplikacji z zewnatrz przez NodePort
+
+Poniewaz `flask-service` ma typ `NodePort`, aplikacja jest dostepna z zewnatrz po adresie Minikube i porcie `30080`.
+
+Pobierz adres IP Minikube:
+
+```bash
+minikube ip
+```
+
+Nastepnie otworz aplikacje:
+
+```bash
+curl http://$(minikube ip):30080/
+```
+
+Mozesz tez sprawdzic endpoint health:
+
+```bash
+curl http://$(minikube ip):30080/health
+```
+
+## Krok 6. Udostepnij aplikacje na zewnatrz w Codespaces
+
+W GitHub Codespaces sam `NodePort` w Minikube zwykle nie wystarcza do publikacji aplikacji poza kontener roboczy. Powod jest prosty: aplikacja nasluchuje na adresie IP Minikube, a nie bezposrednio na porcie kontenera Codespaces.
+
+Z tego powodu trzeba wystawic usluge Kubernetes na lokalny port kontenera przez `kubectl port-forward`.
+
+Uruchom w osobnym terminalu:
+
+```bash
+kubectl port-forward --address 0.0.0.0 svc/flask-service 8080:80
+```
+
+Po uruchomieniu polecenia aplikacja bedzie dostepna lokalnie pod adresem:
+
+```bash
+curl http://127.0.0.1:8080/
+curl http://127.0.0.1:8080/health
+```
+
+Wtedy Codespaces wykryje port `8080` jako port nasluchujacy i bedziesz mogl go udostepnic na zewnatrz z zakladki `Ports`.
+
+Jesli chcesz, aby link byl publiczny, ustaw widocznosc portu `8080` na `Public`.
+
+## Krok 7. Sprawdz dzialanie aplikacji przez Ingress
 
 Pobierz adres IP Minikube:
 
@@ -117,13 +162,13 @@ Mozesz tez sprawdzic endpoint health:
 curl --resolve flask-redis.local:80:$(minikube ip) http://flask-redis.local/health
 ```
 
-## Krok 6. Podejrzyj logi aplikacji
+## Krok 8. Podejrzyj logi aplikacji
 
 ```bash
 kubectl logs deployment/flask-app
 ```
 
-## Krok 7. Posprzataj po cwiczeniu
+## Krok 9. Posprzataj po cwiczeniu
 
 ```bash
 kubectl delete -f manifests/ingress.yaml
@@ -148,9 +193,11 @@ Po wykonaniu zadania:
 
 1. sprawdz status Podow,
 2. sprawdz status `Service` i `Ingress`,
-3. wejdz na aplikacje przez `curl --resolve`,
-4. sprawdz endpoint `/health`,
-5. potwierdz, ze licznik odwiedzin rosnie po kolejnych wywolaniach.
+3. wejdz na aplikacje przez `NodePort`,
+4. wystaw aplikacje w Codespaces przez `kubectl port-forward`,
+5. wejdz na aplikacje przez `curl --resolve`,
+6. sprawdz endpoint `/health`,
+7. potwierdz, ze licznik odwiedzin rosnie po kolejnych wywolaniach.
 
 ## Przydatne komendy
 
@@ -167,6 +214,11 @@ kubectl get pods
 kubectl get services
 kubectl get ingress
 kubectl logs deployment/flask-app
+curl http://$(minikube ip):30080/
+curl http://$(minikube ip):30080/health
+kubectl port-forward --address 0.0.0.0 svc/flask-service 8080:80
+curl http://127.0.0.1:8080/
+curl http://127.0.0.1:8080/health
 curl --resolve flask-redis.local:80:$(minikube ip) http://flask-redis.local/
 curl --resolve flask-redis.local:80:$(minikube ip) http://flask-redis.local/health
 ```

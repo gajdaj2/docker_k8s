@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flask-tests-zad3
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: flask-tests
+          image: flask-redis-k8s-tests:1.0
+          imagePullPolicy: IfNotPresent
+          command: ["pytest", "tests/integration", "-q"]
+          env:
+            - name: APP_BASE_URL
+              value: http://flask-service-zad3

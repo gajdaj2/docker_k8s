@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-zad3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-zad3
+  template:
+    metadata:
+      labels:
+        app: flask-app-zad3
+    spec:
+      containers:
+        - name: flask-app
+          image: flask-redis-k8s-tests:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-service-zad3
+            - name: APP_TITLE
+              value: Flask + Redis + testy jako Job

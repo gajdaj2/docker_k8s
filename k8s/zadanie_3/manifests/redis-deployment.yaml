@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-zad3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-zad3
+  template:
+    metadata:
+      labels:
+        app: redis-zad3
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
